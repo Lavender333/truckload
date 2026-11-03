@@ -32,3 +32,11 @@ input::-webkit-date-and-time-value{text-align:left;min-height:1.5em}
 @media(max-width:1100px){.columns{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:790px){.layout{display:block}.grid{grid-template-columns:minmax(0,1fr)}.card,.trip-card,.result{padding:18px}.card .card{padding:14px}.card-title{align-items:flex-start}.dashboard-grid{grid-template-columns:minmax(0,1fr)}main{padding:22px 4%}.upload-zone{padding:14px}footer{flex-wrap:wrap}input,select{font-size:16px}.amount{font-size:clamp(30px,9vw,49px)}.metrics{grid-template-columns:minmax(0,1fr)}}
 #weekDate{max-width:100%}
+
+/* iPhone safe areas, keyboard-friendly inputs and visible keyboard focus. */
+body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom)}
+:focus-visible{outline:3px solid #356d5d;outline-offset:3px}
+footer nav{display:flex;flex-wrap:wrap;gap:18px;margin:12px 0}
+footer a{color:inherit;min-height:44px;display:inline-flex;align-items:center}
+@media(max-width:768px){input,select,textarea{font-size:16px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}

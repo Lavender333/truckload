@@ -7,3 +7,10 @@ private-data/
 *.xls
 *.zip
 .openai/
+
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/Pods/
+ios/DerivedData/
+*.xcuserstate
+xcuserdata/

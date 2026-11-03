@@ -1,0 +1,6 @@
+{
+  "appId": "com.truelavender.truckload",
+  "appName": "Truckload",
+  "webDir": "dist",
+  "ios": { "contentInset": "automatic", "backgroundColor": "#f5f6f1" }
+}
