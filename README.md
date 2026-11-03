@@ -63,3 +63,17 @@ Estimated trip expenses = consumed diesel + driver pay + tolls + scale + reefer 
 Monthly budgets apply from their effective date and are divided by the calendar days in each applicable month, including leap years. Weekly business allocation includes all seven days, even when no trip completes. Editing the same effective date replaces that budget; creating a later effective date retains earlier periods. These are budget allocations, not recorded bill payments. Data remains device-local; exports do not constitute a complete backup of documents and settings.
 
 Run all core checks: `node tests/trip-math.test.cjs`, `node tests/fuel-core.test.cjs`, `node tests/ratecon-core.test.cjs`, `node tests/review-fields.test.cjs`, `node tests/safari-stream.test.mjs` and `node tests/ui-wiring.test.cjs`.
+
+## iPhone preparation
+
+The repository now includes a Capacitor iOS project. Install with `npm ci`, run
+`npm test`, then `npm run ios:sync`. On a Mac with Xcode 26+, run
+`npm run ios:open` and configure your signing team. The native bundle uses local
+web assets, native file sharing and a filesystem privacy manifest.
+
+See [the App Store handoff](docs/APP-STORE.md) for build instructions, draft listing
+text and the remaining release gates. This is not a signed or device-validated
+release. Subscriptions and database/accounts are not implemented.
+
+The committed `dist/native-export.js` is generated from `native/file-export.js`
+with `npm run build`; commit both when changing the export integration.

@@ -1,0 +1,40 @@
+{
+  "name": "truckload",
+  "version": "1.0.0",
+  "description": "Truckload trip calculator and iOS application",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node --test tests/*test.cjs tests/*test.mjs",
+    "build": "node scripts/build-native.mjs",
+    "ios:sync": "npm run build && cap sync ios",
+    "ios:open": "cap open ios"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lavender333/truckload.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Lavender333/truckload/issues"
+  },
+  "homepage": "https://github.com/Lavender333/truckload#readme",
+  "dependencies": {
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/ios": "^8.6.0",
+    "@capacitor/share": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.0",
+    "esbuild": "^0.28.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  }
+}
