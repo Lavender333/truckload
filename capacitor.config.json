@@ -1,0 +1,8 @@
+{
+  "appId": "online.truelavender.truckload",
+  "appName": "Truckload",
+  "webDir": "dist",
+  "server": {
+    "iosScheme": "capacitor"
+  }
+}
