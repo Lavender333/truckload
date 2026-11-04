@@ -6,13 +6,18 @@
     "ios:sync": "npx cap sync ios",
     "ios:open": "npx cap open ios",
     "test": "node --test tests/*.test.cjs tests/*.test.mjs",
-    "ios:build:simulator": "xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination \"generic/platform=iOS Simulator\" -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build"
+    "ios:build:simulator": "xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination \"generic/platform=iOS Simulator\" -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build",
+    "build:cloud": "node scripts/build-cloud.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^7.0.0",
-    "@capacitor/ios": "^7.0.0"
+    "@capacitor/ios": "^7.0.0",
+    "@supabase/supabase-js": "2.119.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.0.0"
+    "@capacitor/cli": "^7.0.0",
+    "@electric-sql/pglite": "0.5.15",
+    "esbuild": "0.28.2",
+    "supabase": "3.0.0"
   }
 }

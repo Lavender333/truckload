@@ -1,0 +1,2 @@
+# Generated vendor bundle contains significant whitespace inside template literals.
+dist/cloud-account.js -whitespace

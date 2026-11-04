@@ -9,10 +9,10 @@ test('privacy and deletion controls present',()=>{
  for(const id of ['confirmLocalDelete','deleteLocalData','deleteDataStatus'])assert.match(html,new RegExp('id="'+id+'"'));
  assert.match(html,/href="privacy\.html"/);
 });
-test('cloud login controls explicitly unavailable',()=>{
- assert.match(html,/Create account — coming soon/);
- assert.match(html,/Sign in — coming soon/);
- assert.match(html,/disabled>Create account/);
+test('email sign-in and explicit cloud backup controls present',()=>{
+ for(const id of ['cloudSendCode','cloudVerifyCode','cloudConsent','cloudSave','cloudRestore','cloudDeleteAccount'])assert.match(html,new RegExp('id="'+id+'"'));
+ assert.match(html,/not automatic sync/);
+ assert.match(html,/id="restorePurchases" disabled/);
 });
 test('support form submits directly to external provider',()=>{
  assert.match(html,/id="supportForm"/);

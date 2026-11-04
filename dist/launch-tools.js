@@ -5,7 +5,7 @@
   const status=document.getElementById('backupStatus');
   try{
    const records={};
-   for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&key.startsWith('sagi-'))records[key]=localStorage.getItem(key);}
+   for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&(key.startsWith('sagi-')||['truckload-business-budgets','truckload-business-expenses'].includes(key)))records[key]=localStorage.getItem(key);}
    const payload={format:'truckload-local-backup',version:1,createdAt:new Date().toISOString(),scope:'localStorage only; uploaded PDFs/photos excluded',records};
    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
    const url=URL.createObjectURL(blob),a=document.createElement('a');

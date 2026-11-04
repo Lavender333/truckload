@@ -67,3 +67,7 @@ Run all core checks: `node tests/trip-math.test.cjs`, `node tests/fuel-core.test
 ## Native iOS testing
 
 The native SPM Xcode project is checked in under `ios/`. See [Mac build, signing instructions and verification results](docs/IOS-XCODE-DEVICE-SETUP.md). Run `npm ci`, `npm run ios:sync`, then `npm run ios:build:simulator`. Automatic signing is configured for True Lavender LLC; signed installation and startup passed on the owner’s iPhone. Interactive device QA remains pending.
+
+## Cloud backend work
+
+Email sign-in and explicit private cloud backup are implemented on the backend feature branch but remain disabled until a Supabase project is available and hosted checks pass. See [backend setup and verification](docs/BACKEND-SETUP.md). Local records remain available; no automatic upload, document sync or subscriptions are enabled. Run `npm run build:cloud` after changing cloud-client source.

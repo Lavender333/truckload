@@ -19,7 +19,7 @@
    });
    const keys=[];
    for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&key.startsWith('sagi-'))keys.push(key);}
-   for(const key of keys)localStorage.removeItem(key);
+   for(const key of [...keys,'truckload-business-budgets','truckload-business-expenses','truckload-backup-owner'])localStorage.removeItem(key);
    status.textContent='Local Truckload records and documents deleted. Reloading…';
    location.reload();
   }catch(err){status.textContent=err.message||'Deletion failed. Try again.';button.disabled=false;}
