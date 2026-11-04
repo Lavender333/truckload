@@ -1,0 +1,44 @@
+name: iOS Xcode project and simulator build
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'dist/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.json'
+      - '.github/workflows/ios-project.yml'
+jobs:
+  ios:
+    runs-on: macos-15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate native Xcode project
+        run: |
+          npx cap add ios
+          npx cap sync ios
+      - name: Build unsigned simulator app
+        run: |
+          set -o pipefail
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
+      - name: Package Xcode project
+        run: zip -qry truckload-ios-xcode-project.zip ios
+      - name: Upload Xcode project
+        uses: actions/upload-artifact@v4
+        with:
+          name: truckload-ios-xcode-project
+          path: truckload-ios-xcode-project.zip
+          retention-days: 14
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: truckload-ios-simulator-app
+          path: build/DerivedData/Build/Products/Debug-iphonesimulator/App.app
+          retention-days: 14
