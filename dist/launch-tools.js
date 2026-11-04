@@ -26,9 +26,12 @@
   const button=form.querySelector('button[type="submit"]');
   if(!message)return;
   button.disabled=true;status.textContent='Submitting your question…';
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),12000);
   try{
    const response=await fetch('https://formsubmit.co/ajax/antoinettewilliams@thetruelavender.online',{
     method:'POST',
+    signal:controller.signal,
     headers:{'Content-Type':'application/json','Accept':'application/json'},
     body:JSON.stringify({email,topic,message,_subject:'Truckload support: '+topic,_captcha:'true',_template:'table'})
    });
@@ -38,7 +41,7 @@
    status.textContent='Your question was submitted. Thank you!';
    form.reset();
   }catch(err){
-   status.textContent='We could not confirm submission. Please try again later or contact support directly.';
-  }finally{button.disabled=false;}
+   status.textContent=err.name==='AbortError'?'The email service did not respond within 12 seconds. Your message is not confirmed. Please try again later.':'We could not confirm submission. Please check that the support inbox has activated FormSubmit, then try again.';
+  }finally{clearTimeout(timeout);button.disabled=false;}
  });
 })();
