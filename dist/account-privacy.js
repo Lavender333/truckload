@@ -1,17 +1,27 @@
 'use strict';
 (function(){
- const checkbox=document.getElementById('confirmLocalDelete'),button=document.getElementById('deleteLocalData'),status=document.getElementById('deleteDataStatus');
+ const checkbox=document.getElementById('confirmLocalDelete');
+ const button=document.getElementById('deleteLocalData');
+ const status=document.getElementById('deleteDataStatus');
+ if(location.hash==='#account' && typeof tab==='function')tab('account');
  if(!button)return;
  button.addEventListener('click',async()=>{
-  if(!checkbox.checked){status.textContent='Check the confirmation box first.';return;}
-  if(!window.confirm('Permanently delete Truckload trips, settings, fuel records and saved documents from this device? This cannot be undone.'))return;
-  button.disabled=true;status.textContent='Deleting device data…';
+  if(!checkbox.checked){status.textContent='Please confirm that you understand this deletion is permanent.';return;}
+  if(!confirm('Delete all Truckload data and saved documents on this device? Export anything you need first. This cannot be undone.'))return;
+  button.disabled=true;status.textContent='Deleting local Truckload data…';
   try{
-   const dbNames=['sagisolar-documents'];
-   await Promise.all(dbNames.map(name=>new Promise((resolve,reject)=>{if(!window.indexedDB){resolve();return;}const req=indexedDB.deleteDatabase(name);req.onsuccess=resolve;req.onerror=()=>reject(Error('Could not delete saved documents. Close other Truckload tabs and retry.'));req.onblocked=()=>reject(Error('Close other Truckload tabs and retry deleting documents.'));})));
-   const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('sagi-'))keys.push(k);}
-   keys.forEach(k=>localStorage.removeItem(k));
-   status.textContent='Device data deleted. Reloading…';window.location.reload();
-  }catch(e){status.textContent=e.message;button.disabled=false;}
+   if(typeof window.closeTruckloadDocumentStorage==='function')await window.closeTruckloadDocumentStorage();
+   if(window.indexedDB)await new Promise((resolve,reject)=>{
+    const req=indexedDB.deleteDatabase('sagisolar-documents');
+    req.onsuccess=()=>resolve();
+    req.onerror=()=>reject(new Error('Saved documents could not be deleted. Please retry.'));
+    req.onblocked=()=>reject(new Error('Document storage is open in another tab. Close other Truckload tabs, then retry.'));
+   });
+   const keys=[];
+   for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&key.startsWith('sagi-'))keys.push(key);}
+   for(const key of keys)localStorage.removeItem(key);
+   status.textContent='Local Truckload records and documents deleted. Reloading…';
+   location.reload();
+  }catch(err){status.textContent=err.message||'Deletion failed. Try again.';button.disabled=false;}
  });
 })();
