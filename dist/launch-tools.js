@@ -29,19 +29,19 @@
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),12000);
   try{
-   const response=await fetch('https://formsubmit.co/ajax/antoinettewilliams@thetruelavender.online',{
+   const response=await fetch('https://api.web3forms.com/submit',{
     method:'POST',
     signal:controller.signal,
     headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body:JSON.stringify({email,topic,message,_subject:'Truckload support: '+topic,_captcha:'true',_template:'table'})
+    body:JSON.stringify({access_key:'4966ba24-4d88-4f94-a987-2913346f8b46',email,subject:'Truckload support: '+topic,topic,message,from_name:'Truckload support form'})
    });
    if(!response.ok)throw new Error('Submission was not accepted.');
    const result=await response.json();
-   if(result.success!==true&&result.success!=='true')throw new Error('Submission was not confirmed.');
+   if(result.success!==true)throw new Error('Submission was not confirmed.');
    status.textContent='Your question was submitted. Thank you!';
    form.reset();
   }catch(err){
-   status.textContent=err.name==='AbortError'?'The email service did not respond within 12 seconds. Your message is not confirmed. Please try again later.':'We could not confirm submission. Please check that the support inbox has activated FormSubmit, then try again.';
+   status.textContent=err.name==='AbortError'?'The email service did not respond within 12 seconds. Your message is not confirmed. Please try again later.':'We could not confirm submission. Please check your Web3Forms dashboard and try again.';
   }finally{clearTimeout(timeout);button.disabled=false;}
  });
 })();
