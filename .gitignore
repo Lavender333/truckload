@@ -7,3 +7,14 @@ private-data/
 *.xls
 *.zip
 .openai/
+
+# Native build output and private signing material
+build/
+*.xcuserstate
+*.xcuserdatad/
+*.p12
+*.p8
+*.mobileprovision
+*.provisionprofile
+*.cer
+*.key

@@ -5,6 +5,11 @@ for(const engine of [chromium,webkit]){
  const browser=await engine.launch({headless:true});
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8017');
+ assert.equal(await page.evaluate(()=>!!window.__truckloadGtmLoaded),false);
+ await page.click('#analyticsDecline');
+ await page.reload();
+ assert.equal(await page.evaluate(()=>localStorage.getItem('truckload-analytics-consent-v1')),'denied');
+ assert.equal(await page.evaluate(()=>!!window.__truckloadGtmLoaded),false);
  await page.fill('#origin','Atlanta');await page.fill('#destination','Orlando');await page.fill('#pay','2000');await page.fill('#miles','400');await page.click('#tripForm button[type="submit"]');await page.click('#saveTrip');
  for(const width of [320,375,390,430,768,1024,1440]){
   await page.setViewportSize({width,height:900});

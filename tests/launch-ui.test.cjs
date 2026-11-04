@@ -16,7 +16,8 @@ test('cloud login controls explicitly unavailable',()=>{
 });
 test('support form submits directly to external provider',()=>{
  assert.match(html,/id="supportForm"/);
- assert.match(script,/mailto:antoinettewilliams@thetruelavender\.online/);
+ assert.match(script,/https:\/\/api\.web3forms\.com\/submit/);
+ assert.match(html,/mailto:antoinettewilliams@thetruelavender\.online/);
  assert.match(html,/Submit question/);
 });
 test('backup scope and privacy disclosures are explicit',()=>{

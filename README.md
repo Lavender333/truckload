@@ -28,7 +28,7 @@ October 22 updates: forms stack on mobile across all six tabs, including documen
 
 Earnings now accept an inclusive start/end date range and display gross and net. Monthly business budgets include fees, maintenance, repairs and meals; dated one-time expenses are deducted in their selected range. Do not enter the same expense in both a budget and a dated entry. Existing saved budgets default the new categories to zero. Reviewed rate-confirmation details populate the trip and immediately calculate an estimate when required fields are valid.
 
-Run `node --test tests/*test.cjs tests/*test.mjs` for automated checks. Optional layout checks require Playwright with Chromium and WebKit installed, a server on port 8017 serving dist, and `node tests/mobile-browser.cjs`. Browser installation was unavailable in the implementation environment; this browser check has not yet been run successfully.
+Run `node --test tests/*test.cjs tests/*test.mjs` for automated checks. Optional layout checks require Playwright with Chromium and WebKit installed, a server on port 8017 serving dist, and `node tests/mobile-browser.cjs`. Chromium and WebKit layout/form checks passed on November 4, 2026.
 
 Serve the `dist` directory with any static web server (for example, `python -m http.server 8000 --directory dist`) and open its local address. No package install or build is required. For GitHub Pages, select main and / (root); the root entry redirects to dist/. GitHub Pages can host this browser-local edition; it cannot hold private provider API secrets.
 
@@ -63,3 +63,7 @@ Estimated trip expenses = consumed diesel + driver pay + tolls + scale + reefer 
 Monthly budgets apply from their effective date and are divided by the calendar days in each applicable month, including leap years. Weekly business allocation includes all seven days, even when no trip completes. Editing the same effective date replaces that budget; creating a later effective date retains earlier periods. These are budget allocations, not recorded bill payments. Data remains device-local; exports do not constitute a complete backup of documents and settings.
 
 Run all core checks: `node tests/trip-math.test.cjs`, `node tests/fuel-core.test.cjs`, `node tests/ratecon-core.test.cjs`, `node tests/review-fields.test.cjs`, `node tests/safari-stream.test.mjs` and `node tests/ui-wiring.test.cjs`.
+
+## Native iOS testing
+
+The native SPM Xcode project is checked in under `ios/`. See [Mac build, signing instructions and verification results](docs/IOS-XCODE-DEVICE-SETUP.md). Run `npm ci`, `npm run ios:sync`, then `npm run ios:build:simulator`. Physical-device signing still requires your Apple Developer team.

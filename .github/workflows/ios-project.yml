@@ -4,8 +4,18 @@ on:
   push:
     paths:
       - 'dist/**'
+      - 'ios/**'
+      - 'tests/**'
       - 'package.json'
       - 'package-lock.json'
+      - 'capacitor.config.json'
+      - '.github/workflows/ios-project.yml'
+  pull_request:
+    paths:
+      - 'dist/**'
+      - 'ios/**'
+      - 'tests/**'
+      - 'package*.json'
       - 'capacitor.config.json'
       - '.github/workflows/ios-project.yml'
 jobs:
@@ -19,15 +29,15 @@ jobs:
         with:
           node-version: '22'
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
-      - name: Generate native Xcode project
-        run: |
-          npx cap add ios
-          npx cap sync ios
+        run: npm ci --no-audit --no-fund
+      - name: Test web features
+        run: npm test
+      - name: Sync web assets into native project
+        run: npm run ios:sync
       - name: Build unsigned simulator app
         run: |
           set -o pipefail
-          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
+          npm run ios:build:simulator
       - name: Package Xcode project
         run: zip -qry truckload-ios-xcode-project.zip ios
       - name: Upload Xcode project

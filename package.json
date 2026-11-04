@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "ios:add": "npx cap add ios",
     "ios:sync": "npx cap sync ios",
     "ios:open": "npx cap open ios",
-    "test": "node --test tests/*.test.cjs tests/*.test.mjs"
+    "test": "node --test tests/*.test.cjs tests/*.test.mjs",
+    "ios:build:simulator": "xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination \"generic/platform=iOS Simulator\" -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build"
   },
   "dependencies": {
     "@capacitor/core": "^7.0.0",
