@@ -3,6 +3,15 @@ let rateconDBPromise=null,rateconDocs=[],reviewingRatecon=null,rateconURLs=[];
 window.activeRateconId=null;
 function rateconDB(){if(!rateconDBPromise)rateconDBPromise=new Promise((resolve,reject)=>{if(!window.indexedDB){reject(Error('Document storage is unavailable in this browser.'));return}const r=indexedDB.open('sagisolar-documents',1);r.onupgradeneeded=()=>r.result.createObjectStore('ratecons',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(Error('Could not open document storage.'));r.onblocked=()=>reject(Error('Close other Truckload tabs and retry.'));});return rateconDBPromise;}
 async function docOp(mode,action){const db=await rateconDB();return new Promise((resolve,reject)=>{const tx=db.transaction('ratecons',mode),request=action(tx.objectStore('ratecons'));let result;request.onsuccess=()=>result=request.result;tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(Error('Could not save or read the document. Browser storage may be full.'));tx.onabort=()=>reject(Error('Document storage was interrupted.'));});}
+window.closeTruckloadDocumentStorage=async function(){
+ if(rateconDBPromise){
+  const db=await rateconDBPromise;
+  db.close();
+  rateconDBPromise=null;
+ }
+ for(const url of rateconURLs)URL.revokeObjectURL(url);
+ rateconURLs=[];
+};
 function fileURL(doc){const u=URL.createObjectURL(doc.blob);rateconURLs.push(u);return u;}
 function openDocument(doc){const a=document.createElement('a');a.href=fileURL(doc);a.target='_blank';a.rel='noopener';a.click();}
 window.setActiveRatecon=function(id,name){window.activeRateconId=id;$('activeRateconLabel').textContent=id?`Attached: ${name||rateconDocs.find(d=>d.id===id)?.name||'Rate confirmation'}`:'PDF or photo · attach it to your estimate';$('detachRatecon').hidden=!id;};$('detachRatecon').onclick=()=>window.setActiveRatecon(null);
