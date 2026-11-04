@@ -14,10 +14,10 @@ test('cloud login controls explicitly unavailable',()=>{
  assert.match(html,/Sign in — coming soon/);
  assert.match(html,/disabled>Create account/);
 });
-test('support is user-initiated mailto',()=>{
+test('support form submits directly to external provider',()=>{
  assert.match(html,/id="supportForm"/);
  assert.match(script,/mailto:antoinettewilliams@thetruelavender\.online/);
- assert.match(html,/Nothing is automatically transmitted/);
+ assert.match(html,/Submit question/);
 });
 test('backup scope and privacy disclosures are explicit',()=>{
  assert.match(script,/scope:'localStorage only/);
