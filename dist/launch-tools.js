@@ -15,17 +15,30 @@
   }catch(err){status.textContent='Could not create backup: '+err.message;}
  });
  const form=document.getElementById('supportForm');
- if(form)form.addEventListener('submit',event=>{
+ if(!form)return;
+ form.addEventListener('submit',async event=>{
   event.preventDefault();
   if(!form.reportValidity())return;
   const email=document.getElementById('supportEmail').value.trim();
   const topic=document.getElementById('supportTopic').value;
   const message=document.getElementById('supportMessage').value.trim();
+  const status=document.getElementById('supportStatus');
+  const button=form.querySelector('button[type="submit"]');
   if(!message)return;
-  const subject='Truckload support: '+topic;
-  const body='Reply-to email: '+email+'\nTopic: '+topic+'\n\n'+message+'\n\nSent by user from Truckload email composer.';
-  const link='mailto:antoinettewilliams@thetruelavender.online?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-  document.getElementById('supportStatus').textContent='Your email app should open. Please press Send there to submit your question.';
-  window.location.href=link;
+  button.disabled=true;status.textContent='Submitting your question…';
+  try{
+   const response=await fetch('https://formsubmit.co/ajax/antoinettewilliams@thetruelavender.online',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body:JSON.stringify({email,topic,message,_subject:'Truckload support: '+topic,_captcha:'true',_template:'table'})
+   });
+   if(!response.ok)throw new Error('Submission was not accepted.');
+   const result=await response.json();
+   if(result.success!==true&&result.success!=='true')throw new Error('Submission was not confirmed.');
+   status.textContent='Your question was submitted. Thank you!';
+   form.reset();
+  }catch(err){
+   status.textContent='We could not confirm submission. Please try again later or contact support directly.';
+  }finally{button.disabled=false;}
  });
 })();
