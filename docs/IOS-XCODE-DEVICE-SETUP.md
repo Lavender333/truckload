@@ -24,7 +24,7 @@ GitHub Actions now runs `npm ci`, tests, sync and the unsigned simulator build a
 ## Automatic signing and installation
 
 1. In Xcode **Settings → Accounts**, sign in to the Apple Account that owns the intended development team. Keep credentials in Xcode/Keychain.
-2. Open the project, select the blue **App** project, then **TARGETS → App → Signing & Capabilities**. **Automatically manage signing** is already enabled for Debug and Release. Select your intended **Team**; no team is hardcoded in Git.
+2. Open the project, select the blue **App** project, then **TARGETS → App → Signing & Capabilities**. **Automatically manage signing** is already enabled for Debug and Release. The selected team is **True Lavender LLC** (`24YM7QGF6R`), as requested by the owner. This public team identifier is not a signing secret; certificates and provisioning profiles remain outside Git.
 3. Verify that your team owns `online.truelavender.truckload`. Do not change the bundle ID if this is an update to an existing app: that would create a separate app/storage container. Resolve registration conflicts with the owner.
 4. Connect and unlock the iPhone. Accept **Trust This Computer** if requested. Enable **Settings → Privacy & Security → Developer Mode** on the phone if Xcode requests it; restart and confirm as prompted.
 5. In Xcode choose scheme **App** and the physical **iPhone** destination, then **Product → Run**. Allow Xcode to register the device and manage provisioning. Resolve any account agreements or membership prompts in your own account.
@@ -40,7 +40,8 @@ Apple's [device installation instructions](https://help.apple.com/xcode/mac/curr
 - Unsigned Debug simulator build passed, including arm64 and x86_64 compilation; installed and launched on an iPhone 17 Pro simulator running iOS 26.3. Runtime reported **WebView loaded**.
 - Native safe-area adjustment is automatic so the app header avoids the camera/status area.
 - Chromium and WebKit browser checks passed across seven widths (320–1440 pixels), covering six main tabs, trip calculation/save, fuel and business forms. Declining analytics persists across reload, and GTM remains unloaded. This is browser coverage, not equivalent to physical-device testing.
-- A paired iPhone 17e was detected. Team selection/signing and physical installation remain pending user participation. No physical-device test, signed archive, TestFlight upload or App Store validation has completed.
+- Follow-up: the owner selected True Lavender LLC. Automatic signing succeeded for team `24YM7QGF6R`; a signed Debug device build passed and installed on the paired iPhone 17e running iOS 27.2. Device launch succeeded and its runtime reported **WebView loaded**. This verifies installation/startup only; interactive physical-device workflows remain pending. No distribution archive, TestFlight upload or App Store validation has completed.
+- The GitHub simulator workflow also passed: https://github.com/Lavender333/truckload/actions/runs/41884857363 .
 
 ## Native and release review
 
@@ -54,9 +55,10 @@ Apple's [device installation instructions](https://help.apple.com/xcode/mac/curr
 
 References: [Capacitor privacy manifests](https://capacitorjs.com/docs/v7/ios/privacy-manifest), [Apple SDK requirements](https://developer.apple.com/support/third-party-SDK-requirements/), [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/).
 
-## Physical-device checklist (pending)
+## Physical-device checklist
 
-- [ ] Install, launch, rotate, navigate all seven tabs; check keyboard, safe areas and readable text.
+- [x] Install and launch signed app on the physical iPhone; confirm WebView loaded through device console.
+- [ ] Rotate, navigate all seven tabs; check keyboard, safe areas and readable text.
 - [ ] Calculate, save, reopen and delete a test trip; confirm totals and persistence after force quit.
 - [ ] Import diesel CSV and PDF/photo rate confirmations, review OCR and open originals.
 - [ ] Export trips/fuel/backup and confirm files actually appear in Files; browser Blob downloads need native-device verification.
