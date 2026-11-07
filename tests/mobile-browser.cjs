@@ -6,7 +6,7 @@ for(const engine of [chromium,webkit]){
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8017');
  assert.equal(await page.evaluate(()=>!!window.__truckloadGtmLoaded),false);
- await page.click('#analyticsDecline');
+ await page.click('#analyticsPreferences');await page.click('#analyticsDecline');await page.evaluate(()=>tab('plan'));
  await page.reload();
  assert.equal(await page.evaluate(()=>localStorage.getItem('truckload-analytics-consent-v1')),'denied');
  assert.equal(await page.evaluate(()=>!!window.__truckloadGtmLoaded),false);

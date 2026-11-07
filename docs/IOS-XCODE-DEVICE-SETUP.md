@@ -72,3 +72,9 @@ The app's WebView storage is separate from Safari. Existing Safari data is not m
 ## Cloud-enabled publication — November 7, 2026
 
 The tested backend branch was fast-forwarded to main and pushed at `aacfb84`. GitHub Pages deployment succeeded and the public cloud configuration was verified enabled. The signed physical-device build succeeded with automatic True Lavender signing. Installation initially failed because the device connection reset, then succeeded on retry on the paired iPhone 17e, preserving the bundle identifier and existing app container. The updated app also launched successfully through device controls. Live authenticated backup/restore and interactive device QA remain pending.
+
+## Analytics update — November 7, 2026
+
+Removed the automatic analytics popup. Website users can opt in or turn analytics off under Account & privacy; fresh installs default off. The native Capacitor app blocks Google Tag Manager regardless of a saved consent choice and hides the website opt-in buttons. This avoids enabling unreviewed third-party tags inside the app. A custom website consent control is not a substitute for Apple App Tracking Transparency if tracking is introduced later.
+
+Chromium and WebKit checks verified no popup, no initial Google requests, explicit website opt-in and revocation, and native blocking even with previously granted consent. The 22 unit/database tests and mobile/cloud browser suites passed. Privacy disclosure was updated. App Store privacy answers must still accurately cover cloud accounts/backups and support submissions; this change does not establish overall App Store approval. See https://developer.apple.com/app-store/user-privacy-and-data-use/ .

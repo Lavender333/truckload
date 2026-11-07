@@ -24,7 +24,7 @@ const jwt=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp:Math.fl
   else{status=404;body={error:'unexpected endpoint'};}
   await r.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
  });
- await page.goto('http://127.0.0.1:8017');await page.click('#analyticsDecline');await page.evaluate(()=>tab('account'));
+ await page.goto('http://127.0.0.1:8017');await page.click('#analyticsPreferences');await page.click('#analyticsDecline');await page.evaluate(()=>tab('plan'));await page.evaluate(()=>tab('account'));
  const signIn=async()=>{await page.fill('#cloudEmail',user.email);await page.click('#cloudSendCode button');await page.fill('#cloudCode','12345678');await page.click('#cloudVerifyCode button');await page.waitForFunction(()=>!document.querySelector('#cloudSignedIn').hidden&&!document.querySelector('#cloudSave').disabled);};
  failVerify=true;await page.fill('#cloudEmail',user.email);await page.click('#cloudSendCode button');await page.fill('#cloudCode','00000000');await page.click('#cloudVerifyCode button');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('could not be verified'));assert.equal(await page.locator('#cloudSignedIn').isVisible(),false);failVerify=false;
  await page.fill('#cloudEmail',user.email);await page.click('#cloudSendCode button');await page.fill('#cloudCode','123456');await page.click('#cloudVerifyCode button');
