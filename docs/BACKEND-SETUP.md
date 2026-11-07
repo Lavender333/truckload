@@ -12,7 +12,7 @@ Custom SMTP has been enabled. The owner entered a password and confirmed sender/
 
 Email authentication and email confirmation are enabled, anonymous sign-ins are disabled, and email code expiry was set to 600 seconds. The dashboard's default code length is eight digits, supported by the app's 6–10 digit input.
 
-On November 7, the authorized live sign-in test failed: the first request exposed an incorrect saved SMTP host (the website URL). After correcting the host and verifying persistence, a retry reached Gmail but received `535 5.7.8 Username and Password not accepted`. The owner must replace the stored credential with a Google app password generated under the same sender account. Do not repeatedly retry or expose the credential. The account remains unverified; no successful live sign-in or backup upload has been demonstrated.
+On November 7, the authorized live sign-in test failed: the first request exposed an incorrect saved SMTP host (the website URL). After correcting the host and verifying persistence, a retry reached Gmail but received `535 5.7.8 Username and Password not accepted`. After the owner updated the SMTP password again, the next authorized email-code request succeeded. Inbox receipt and successful live app sign-in have not yet been verified; no live backup upload has been demonstrated.
 
 The installed iPhone build has not been replaced with this incomplete integration.
 
@@ -22,7 +22,7 @@ The installed iPhone build has not been replaced with this incomplete integratio
 - `delete-account` is deployed with gateway legacy-JWT verification off; its own `auth.getUser(token)` validates callers. Live requests without a token and with an invalid token returned HTTP 401 with the expected function messages.
 - Security and performance advisors were rerun and showed zero errors, warnings or suggestions. Health advisor also showed zero findings.
 - A November 7 REST request using the public publishable key correctly received HTTP 401 / permission denied for anonymous backup reads. Public Auth settings confirmed email enabled, confirmation required and anonymous sign-in disabled.
-- Real email sign-in was attempted but failed at SMTP credentials; authenticated REST backup/restore, successful Edge account deletion and real-device cloud operations remain untested.
+- Email sending now succeeds after the credential correction; authenticated REST backup/restore, successful Edge account deletion and real-device cloud operations remain untested.
 
 ## Implemented
 
@@ -67,3 +67,9 @@ Passed on November 4, 2026:
 - Unsigned iOS Simulator build.
 
 For browser tests, install Playwright separately, serve `dist` on port 8017, and run `tests/mobile-browser.cjs` and `tests/cloud-browser.cjs`. These are browser/mocked API checks, not evidence of real email delivery or deployed database behavior. Hosted database, Edge rejection-path and advisor results are recorded above. Live Auth/API and real-device cloud tests still require working email delivery.
+
+## Expanded button verification (November 7, 2026)
+
+Chromium and WebKit passed every cloud-account button with mocked Supabase responses: invalid and valid email codes (including eight-digit codes), consent gating, save and cancellation, downloaded JSON contents, refresh and server failure recovery, revision conflicts, backup deletion and cancellation, missing-backup download, sign-out preserving records, successful restore onto empty storage with session reset, restore overwrite protection, typed account-deletion confirmation, failed deletion preserving data, and successful account deletion preserving local data. These tests use isolated browser storage and do not operate on the owner's live cloud account.
+
+The broader browser suite also passed all seven app tabs at seven viewport widths, calculator/save, fuel and business forms, and declined analytics in both engines. The 22 unit/database tests and unsigned iOS Simulator build passed earlier the same session. No source-button defect was found in this pass. Real-network authenticated backup and real-device testing are still release gates.
