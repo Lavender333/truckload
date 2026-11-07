@@ -6,16 +6,23 @@ Implementation is on `codex/backend-setup`. The owner-selected existing project 
 
 The migration was applied through the dashboard SQL editor, not the CLI migration runner. Do not blindly reapply it: the table, policies, trigger and function already exist. Reconcile migration history before future CLI migration deployment.
 
-`dist/cloud-config.js` remains disabled until email delivery and end-to-end authenticated checks pass. Hosted setup is waiting for the owner to enter a Gmail app password directly in Supabase SMTP settings. The prepared sender and username are `truckload464@gmail.com`, sender name `Truckload`, host `smtp.gmail.com`, port `465`. No password is stored in the repository. Custom SMTP is required by this project's dashboard before editing sign-in email templates.
+`dist/cloud-config.js` now contains the public project URL and publishable key, but remains disabled until email delivery and authenticated end-to-end checks pass. No service key or SMTP password is in the repository.
 
-Email authentication and email confirmation are enabled, anonymous sign-ins are disabled, and email code expiry was set to 600 seconds. The dashboard's default code length is eight digits. Templates, live email delivery and authenticated cloud operations still need verification. The installed iPhone build has not been replaced with this incomplete integration.
+Custom SMTP has been enabled. The owner entered a password and confirmed sender/username `truckload464@gmail.com`. Host is `smtp.gmail.com` and port is `465`, verified after reloading the dashboard. Both Confirm Signup and Magic Link email templates now send `{{ .Token }}` with subject “Your Truckload sign-in code”. The site URL is `https://lavender333.github.io/truckload/dist/`.
+
+Email authentication and email confirmation are enabled, anonymous sign-ins are disabled, and email code expiry was set to 600 seconds. The dashboard's default code length is eight digits, supported by the app's 6–10 digit input.
+
+On November 7, the authorized live sign-in test failed: the first request exposed an incorrect saved SMTP host (the website URL). After correcting the host and verifying persistence, a retry reached Gmail but received `535 5.7.8 Username and Password not accepted`. The owner must replace the stored credential with a Google app password generated under the same sender account. Do not repeatedly retry or expose the credential. The account remains unverified; no successful live sign-in or backup upload has been demonstrated.
+
+The installed iPhone build has not been replaced with this incomplete integration.
 
 ## Hosted verification (November 6, 2026)
 
 - A transaction containing disposable Auth users and test backups passed owner access, cross-driver read/write/delete denial, ownership reassignment protection, stale revision rejection, anonymous denial and deletion cascade. All test changes were rolled back. These are live database role/claim tests, not separate real Auth sessions.
 - `delete-account` is deployed with gateway legacy-JWT verification off; its own `auth.getUser(token)` validates callers. Live requests without a token and with an invalid token returned HTTP 401 with the expected function messages.
 - Security and performance advisors were rerun and showed zero errors, warnings or suggestions. Health advisor also showed zero findings.
-- Real email sign-in, authenticated REST backup/restore, successful Edge account deletion and real-device cloud operations remain untested.
+- A November 7 REST request using the public publishable key correctly received HTTP 401 / permission denied for anonymous backup reads. Public Auth settings confirmed email enabled, confirmation required and anonymous sign-in disabled.
+- Real email sign-in was attempted but failed at SMTP credentials; authenticated REST backup/restore, successful Edge account deletion and real-device cloud operations remain untested.
 
 ## Implemented
 
