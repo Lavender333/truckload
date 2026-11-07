@@ -70,4 +70,4 @@ The native SPM Xcode project is checked in under `ios/`. See [Mac build, signing
 
 ## Cloud backend work
 
-Email sign-in and explicit private cloud backup are implemented on the backend feature branch but remain disabled until a Supabase project is available and hosted checks pass. See [backend setup and verification](docs/BACKEND-SETUP.md). Local records remain available; no automatic upload, document sync or subscriptions are enabled. Run `npm run build:cloud` after changing cloud-client source.
+Email sign-in and explicit private cloud backup are implemented on the backend feature branch but remain disabled until email delivery and authenticated end-to-end checks pass. The hosted private backup table and account-deletion service are deployed; database isolation and security checks passed. See [backend setup and verification](docs/BACKEND-SETUP.md). Local records remain available; no automatic upload, document sync or subscriptions are enabled. Run `npm run build:cloud` after changing cloud-client source.

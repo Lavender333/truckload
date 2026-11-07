@@ -2,9 +2,20 @@
 
 ## Current status
 
-Implementation is on `codex/backend-setup`. Hosted setup is **blocked**: Supabase rejected creation of Truckload in the owner-selected True Lavender organization because Lavender333 has reached the two-active-free-project limit. The owner approved the quoted $0/month creation cost, but no project was created. No cloud data has been uploaded, no service credentials have been committed, and no paid plan or unrelated project was changed.
+Implementation is on `codex/backend-setup`. The owner-selected existing project `wxaghlxbiglxaqnbtjky` is now configured with the private backup table and account-deletion Edge Function. The dashboard identifies its organization as **Truck Load**, on the Free plan, in West US (Oregon). Initial creation in True Lavender failed because of the free-project quota; no paid plan or unrelated project was changed.
 
-`dist/cloud-config.js` deliberately has `enabled: false`. The local app works and shows that cloud sign-in is being configured. The new backend is not live. The existing installed iPhone build has not been replaced with this incomplete integration.
+The migration was applied through the dashboard SQL editor, not the CLI migration runner. Do not blindly reapply it: the table, policies, trigger and function already exist. Reconcile migration history before future CLI migration deployment.
+
+`dist/cloud-config.js` remains disabled until email delivery and end-to-end authenticated checks pass. Hosted setup is waiting for the owner to enter a Gmail app password directly in Supabase SMTP settings. The prepared sender and username are `truckload464@gmail.com`, sender name `Truckload`, host `smtp.gmail.com`, port `465`. No password is stored in the repository. Custom SMTP is required by this project's dashboard before editing sign-in email templates.
+
+Email authentication and email confirmation are enabled, anonymous sign-ins are disabled, and email code expiry was set to 600 seconds. The dashboard's default code length is eight digits. Templates, live email delivery and authenticated cloud operations still need verification. The installed iPhone build has not been replaced with this incomplete integration.
+
+## Hosted verification (November 6, 2026)
+
+- A transaction containing disposable Auth users and test backups passed owner access, cross-driver read/write/delete denial, ownership reassignment protection, stale revision rejection, anonymous denial and deletion cascade. All test changes were rolled back. These are live database role/claim tests, not separate real Auth sessions.
+- `delete-account` is deployed with gateway legacy-JWT verification off; its own `auth.getUser(token)` validates callers. Live requests without a token and with an invalid token returned HTTP 401 with the expected function messages.
+- Security and performance advisors were rerun and showed zero errors, warnings or suggestions. Health advisor also showed zero findings.
+- Real email sign-in, authenticated REST backup/restore, successful Edge account deletion and real-device cloud operations remain untested.
 
 ## Implemented
 
@@ -19,7 +30,7 @@ Implementation is on `codex/backend-setup`. Hosted setup is **blocked**: Supabas
 
 ## Complete hosted setup
 
-1. Select an existing suitable Supabase project, free a slot by explicitly choosing an unused project to pause, or approve a paid option. Do not pause/delete unrelated projects speculatively.
+1. Continue with existing project `wxaghlxbiglxaqnbtjky`; do not create or alter unrelated projects.
 2. Inspect the chosen project's tables, migrations and security advisories before applying `supabase/migrations/20261104182105_driver_cloud_backups.sql`. The migration creates a new table/function and should not be applied on top of existing objects with the same names without review.
 3. Run hosted isolation tests with disposable users, using separate authenticated sessions: A can write/read its backup; B cannot read/update/delete A's backup or insert a row for A; anon is denied; owner reassignment fails; stale revisions cannot overwrite; account deletion cascades and stale tokens cannot insert. Local Postgres tests already cover these database behaviors, but do not substitute for hosted Auth/API tests.
 4. Deploy `supabase/functions/delete-account/index.ts` with `verify_jwt=false` because its own `auth.getUser(token)` validates the caller. Confirm missing/invalid tokens get 401, and test deletion with a disposable account only. Never disable the function's in-body authentication.
@@ -48,4 +59,4 @@ Passed on November 4, 2026:
 - Chromium and WebKit with mocked Supabase HTTP responses: code sign-in, no upload before consent, backup contents, revision conflict handling, overwrite protection and account deletion preserving local data.
 - Unsigned iOS Simulator build.
 
-For browser tests, install Playwright separately, serve `dist` on port 8017, and run `tests/mobile-browser.cjs` and `tests/cloud-browser.cjs`. These are browser/mocked API checks, not evidence of real email delivery or deployed database behavior. Hosted migration, Auth delivery, Edge deployment, hosted advisors, live two-user isolation and real-device cloud operations remain untested until a project is available.
+For browser tests, install Playwright separately, serve `dist` on port 8017, and run `tests/mobile-browser.cjs` and `tests/cloud-browser.cjs`. These are browser/mocked API checks, not evidence of real email delivery or deployed database behavior. Hosted database, Edge rejection-path and advisor results are recorded above. Live Auth/API and real-device cloud tests still require working email delivery.
