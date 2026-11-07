@@ -6,7 +6,7 @@ Implementation is on `codex/backend-setup`. The owner-selected existing project 
 
 The migration was applied through the dashboard SQL editor, not the CLI migration runner. Do not blindly reapply it: the table, policies, trigger and function already exist. Reconcile migration history before future CLI migration deployment.
 
-`dist/cloud-config.js` now contains the public project URL and publishable key, but remains disabled until email delivery and authenticated end-to-end checks pass. No service key or SMTP password is in the repository.
+`dist/cloud-config.js` now contains the public project URL and publishable key, and cloud access is enabled at the owner’s explicit request on November 7, 2026. Live authenticated backup/restore and real-device tests remain pending; enabling access does not mean these tests have passed. No service key or SMTP password is in the repository.
 
 Custom SMTP has been enabled. The owner entered a password and confirmed sender/username `truckload464@gmail.com`. Host is `smtp.gmail.com` and port is `465`, verified after reloading the dashboard. Both Confirm Signup and Magic Link email templates now send `{{ .Token }}` with subject “Your Truckload sign-in code”. The site URL is `https://lavender333.github.io/truckload/dist/`.
 
