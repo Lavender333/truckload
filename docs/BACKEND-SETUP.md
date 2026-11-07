@@ -2,7 +2,7 @@
 
 ## Current status
 
-Implementation is on `codex/backend-setup`. The owner-selected existing project `wxaghlxbiglxaqnbtjky` is now configured with the private backup table and account-deletion Edge Function. The dashboard identifies its organization as **Truck Load**, on the Free plan, in West US (Oregon). Initial creation in True Lavender failed because of the free-project quota; no paid plan or unrelated project was changed.
+Implementation was developed on `codex/backend-setup` and published to `main` on November 7, 2026. The owner-selected existing project `wxaghlxbiglxaqnbtjky` is now configured with the private backup table and account-deletion Edge Function. The dashboard identifies its organization as **Truck Load**, on the Free plan, in West US (Oregon). Initial creation in True Lavender failed because of the free-project quota; no paid plan or unrelated project was changed.
 
 The migration was applied through the dashboard SQL editor, not the CLI migration runner. Do not blindly reapply it: the table, policies, trigger and function already exist. Reconcile migration history before future CLI migration deployment.
 
@@ -14,7 +14,7 @@ Email authentication and email confirmation are enabled, anonymous sign-ins are 
 
 On November 7, the authorized live sign-in test failed: the first request exposed an incorrect saved SMTP host (the website URL). After correcting the host and verifying persistence, a retry reached Gmail but received `535 5.7.8 Username and Password not accepted`. After the owner updated the SMTP password again, the next authorized email-code request succeeded. Inbox receipt and successful live app sign-in have not yet been verified; no live backup upload has been demonstrated.
 
-The installed iPhone build has not been replaced with this incomplete integration.
+The cloud-enabled build was installed on the paired iPhone 17e and launched successfully on November 7. This confirms installation/startup only; live authenticated backup/restore still requires verification.
 
 ## Hosted verification (November 6, 2026)
 

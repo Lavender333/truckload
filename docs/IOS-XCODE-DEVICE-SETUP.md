@@ -15,7 +15,7 @@ npm run ios:build:simulator
 npm run ios:open
 ```
 
-Open `ios/App/App.xcodeproj`, not a CocoaPods `.xcworkspace`. The project's internal workspace resolves SPM dependencies. `dist/` is the website source and has no build step; sync copies it into the ignored native `public/` directory. Run sync after changing web assets or Capacitor configuration. Commit native source, package-lock.json and Package.resolved, not generated public assets or build output.
+Open `ios/App/App.xcodeproj`, not a CocoaPods `.xcworkspace`. The project's internal workspace resolves SPM dependencies. `dist/` contains the website assets. Run `npm run build:cloud` after editing the cloud client source; sync copies the assets into the ignored native `public/` directory. Run sync after changing web assets or Capacitor configuration. Commit native source, package-lock.json and Package.resolved, not generated public assets or build output.
 
 The initial Capacitor 7.6.10 CLI incorrectly lowercases the SPM option before testing it and can report CocoaPods missing. This project was generated using the CLI's bundled SPM template and add routine with the package manager explicitly set to SPM. Normal `cap sync ios` works; regenerating is unnecessary.
 
@@ -51,7 +51,7 @@ Apple's [device installation instructions](https://help.apple.com/xcode/mac/curr
 - No location, microphone, push, tracking or native camera plugin/capability was added. There are no permission usage descriptions. Test the HTML file chooser's photo/camera options on a physical phone and add accurate descriptions only for capabilities actually used.
 - Capacitor and Cordova framework privacy manifests are present in the built app. They do not describe Web3Forms or the remotely configured GTM container. Review actual network activity and container tags before finalizing App Privacy answers; do not claim “no data collected.” Support sends email/message contents to Web3Forms. Optional analytics may process identifiers and network metadata; the consent banner alone does not establish Apple tracking compliance. If configured tags perform tracking, resolve ATT requirements before release.
 - Review the privacy policy's older “if analytics ... introduced” wording against its existing optional-analytics section. Confirm public support/privacy links, OCR CDN behavior, privacy labels, encryption answers, screenshots, age rating and review notes. The pending GA4 configuration is unchanged.
-- Check placeholders/disabled account and purchase screens against Apple's completeness requirements. Describe the current local calculator accurately; no accounts, subscriptions or database were enabled. App Store acceptance/minimum functionality has not been established.
+- Check placeholders/disabled account and purchase screens against Apple's completeness requirements. Driver accounts and manual private cloud backup are now enabled. Subscriptions remain disabled. App Store acceptance/minimum functionality has not been established.
 
 References: [Capacitor privacy manifests](https://capacitorjs.com/docs/v7/ios/privacy-manifest), [Apple SDK requirements](https://developer.apple.com/support/third-party-SDK-requirements/), [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/).
 
@@ -68,3 +68,7 @@ References: [Capacitor privacy manifests](https://capacitorjs.com/docs/v7/ios/pr
 - [ ] Delete disposable test data and verify deletion after relaunch, including documents.
 
 The app's WebView storage is separate from Safari. Existing Safari data is not migrated automatically. Keep original documents and exports; do not delete real user data for testing. Local storage keys, calculator logic, Web3Forms and consent code remain unchanged.
+
+## Cloud-enabled publication — November 7, 2026
+
+The tested backend branch was fast-forwarded to main and pushed at `aacfb84`. GitHub Pages deployment succeeded and the public cloud configuration was verified enabled. The signed physical-device build succeeded with automatic True Lavender signing. Installation initially failed because the device connection reset, then succeeded on retry on the paired iPhone 17e, preserving the bundle identifier and existing app container. The updated app also launched successfully through device controls. Live authenticated backup/restore and interactive device QA remain pending.
