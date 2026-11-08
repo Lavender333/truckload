@@ -14,9 +14,10 @@ test('email sign-in and explicit cloud backup controls present',()=>{
  assert.match(html,/Backups are manual/);
  assert.match(html,/id="restorePurchases" disabled/);
 });
-test('support form submits directly to external provider',()=>{
+test('support form submits to private inbox and preserves provider forwarding',()=>{
  assert.match(html,/id="supportForm"/);
- assert.match(script,/https:\/\/api\.web3forms\.com\/submit/);
+ assert.match(script,/functions\/v1\/app-inbox/);
+ assert.match(fs.readFileSync('supabase/functions/app-inbox/index.ts','utf8'),/https:\/\/api\.web3forms\.com\/submit/);
  assert.match(privacy,/mailto:antoinettewilliams@thetruelavender\.online/);
  assert.match(html,/Submit question/);
 });

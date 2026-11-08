@@ -12,7 +12,7 @@ for (const scenario of ['success', 'http error', 'provider rejection', 'network 
    addEventListener: (_, callback) => { submit = callback; }, reset: () => { reset = true; } };
   const elements = { supportForm: form, supportStatus: status,
    supportEmail: { value: 'test@example.com' }, supportTopic: { value: 'Bug report' }, supportMessage: { value: 'Test message' } };
-  vm.runInNewContext(source, { document: { getElementById: id => elements[id] }, AbortController, setTimeout, clearTimeout,
+  vm.runInNewContext(source, { document: { getElementById: id => elements[id] }, AbortController, setTimeout, clearTimeout, crypto:require('node:crypto').webcrypto,window:{TRUCKLOAD_CLOUD:{url:'https://test.supabase.co',publishableKey:'public'}},
    fetch: async (url, options) => {
     request = { url, options };
     assert.equal(button.disabled, true);
@@ -22,7 +22,7 @@ for (const scenario of ['success', 'http error', 'provider rejection', 'network 
    }
   });
   await submit({ preventDefault() {} });
-  assert.equal(request.url, 'https://api.web3forms.com/submit');
+  assert.equal(request.url, 'https://test.supabase.co/functions/v1/app-inbox');
   assert.equal(request.options.method, 'POST');
   assert.equal(JSON.parse(request.options.body).message, 'Test message');
   assert.equal(button.disabled, false);

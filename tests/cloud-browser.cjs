@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const user={id:'11111111-1111-4111-8111-111111111111',email:'driver@example.com',aud:'authenticated',role:'authenticated',email_confirmed_at:new Date().toISOString()};
 const jwt=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp:Math.floor(Date.now()/1000)+3600},'test'].map(x=>Buffer.from(typeof x==='string'?x:JSON.stringify(x)).toString('base64url')).join('.');
 (async()=>{for(const engine of [chromium,webkit]){
- const browser=await engine.launch();const page=await browser.newPage();let requests=[],backup=null,uploads=0,conflict=false,failVerify=false,failRead=false,failDelete=false,cancel=false;const errors=[];
+ const browser=await engine.launch();const page=await browser.newPage();let otpBodies=[],passwordChanges=0,requests=[],backup=null,uploads=0,conflict=false,failVerify=false,failRead=false,failDelete=false,cancel=false;const errors=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>cancel?d.dismiss():d.accept());
  await page.route('**/cloud-config.js',r=>r.fulfill({contentType:'application/javascript',body:"window.TRUCKLOAD_CLOUD={enabled:true,url:'https://test.supabase.co',publishableKey:'sb_publishable_test'}"}));
  await page.route('https://test.supabase.co/**',async r=>{
@@ -11,9 +11,10 @@ const jwt=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp:Math.fl
   if(path==='/auth/v1/verify'&&failVerify){status=400;body={msg:'Expired code'};}
   else if(path==='/rest/v1/driver_backups'&&method==='GET'&&failRead){status=503;body={message:'Unavailable'};}
   else if(path==='/functions/v1/delete-account'&&failDelete){status=500;body={error:'Unavailable'};}
-  else if(path==='/auth/v1/otp')body={};
-  else if(path==='/auth/v1/verify')body={access_token:jwt,refresh_token:'test-refresh',expires_in:3600,token_type:'bearer',user};
-  else if(path==='/auth/v1/user')body=user;
+  else if(path==='/functions/v1/app-inbox')body={rows:[],accepted:true};
+  else if(path==='/auth/v1/otp'){otpBodies.push(req.postDataJSON());body={};}
+  else if(path==='/auth/v1/verify'||path==='/auth/v1/token')body={access_token:jwt,refresh_token:'test-refresh',expires_in:3600,token_type:'bearer',user};
+  else if(path==='/auth/v1/user'){if(method==='PUT')passwordChanges++;body=user;}
   else if(path==='/auth/v1/logout')body={};
   else if(path==='/rest/v1/deletion_requests')body=requests;
   else if(path==='/rest/v1/driver_backups'){
@@ -26,11 +27,17 @@ const jwt=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp:Math.fl
   await r.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
  });
  await page.goto('http://127.0.0.1:8017');await page.click('#analyticsPreferences');await page.click('#analyticsDecline');await page.evaluate(()=>tab('plan'));await page.evaluate(()=>tab('account'));
- const signIn=async()=>{await page.fill('#cloudEmail',user.email);await page.click('#cloudSendCode button');await page.fill('#cloudCode','12345678');await page.click('#cloudVerifyCode button');await page.waitForFunction(()=>!document.querySelector('#cloudSignedIn').hidden&&!document.querySelector('#cloudSave').disabled);};
+ const signIn=async()=>{await page.fill('#cloudLoginEmail',user.email);await page.fill('#cloudLoginPassword','a test password 123');await page.click('#cloudPasswordLogin button');await page.waitForFunction(()=>!document.querySelector('#cloudSignedIn').hidden&&!document.querySelector('#cloudSave').disabled);};
+ await page.locator('#cloudAuthForms details summary').click();
  failVerify=true;await page.fill('#cloudEmail',user.email);await page.click('#cloudSendCode button');await page.fill('#cloudCode','00000000');await page.click('#cloudVerifyCode button');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('could not be verified'));assert.equal(await page.locator('#cloudSignedIn').isVisible(),false);failVerify=false;
  await page.fill('#cloudEmail',user.email);await page.click('#cloudSendCode button');await page.fill('#cloudCode','123456');await page.click('#cloudVerifyCode button');
- await page.waitForFunction(()=>document.querySelector('#cloudIdentity').textContent.includes('driver@example.com'));
+ await page.waitForFunction(()=>!document.querySelector('#cloudSetPassword').hidden);
+ assert.equal(await page.locator('#cloudSignedIn').isVisible(),false);
+ await page.fill('#cloudNewPassword','a test password 123');await page.fill('#cloudConfirmPassword','a different password');await page.click('#cloudSetPassword button:not([type=button])');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('same password'));
+ await page.fill('#cloudConfirmPassword','a test password 123');await page.locator('#cloudSetPassword button').first().click();
+ await page.waitForFunction(()=>!document.querySelector('#cloudSignedIn').hidden);
  await page.waitForFunction(()=>!document.querySelector('#cloudSave').disabled);
+ assert.equal(passwordChanges,1);assert.equal(otpBodies[0].create_user,true);
  assert.equal(uploads,0);
  await page.click('#cloudSave');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Confirm the backup'));assert.equal(uploads,0);
  await page.evaluate(()=>{localStorage.setItem('sagi-trips','[{"id":"local-trip"}]');localStorage.setItem('truckload-business-expenses','[{"amount":25}]');});
@@ -57,6 +64,8 @@ const jwt=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp:Math.fl
  failDelete=true;await page.click('#cloudRequestAccount');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Request was not confirmed'));assert(backup);failDelete=false;
  await page.click('#cloudRequestAccount');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Request received'));assert(backup);assert.equal(requests.length,2);
  await page.click('#cloudRequestRefresh');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Request status refreshed'));assert.equal(await page.locator('#cloudRequests p').count(),2);
+ await page.click('#cloudSignOut');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Signed out.'));
+ await page.locator('#cloudAuthForms details').evaluate(el=>el.open=true);await page.selectOption('#cloudAuthMode','reset');await page.fill('#cloudEmail',user.email);await page.click('#cloudSendCode button');await page.fill('#cloudCode','123456');await page.click('#cloudVerifyCode button');await page.waitForFunction(()=>!document.querySelector('#cloudSetPassword').hidden);assert.equal(otpBodies.at(-1).create_user,false);await page.click('#cloudCancelPassword');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('cancelled'));assert.equal(await page.locator('#cloudSignedIn').isVisible(),false);
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('sagi-trips'))[0].id),'local-trip');assert.deepEqual(errors,[]);
  await browser.close();console.log(engine.name()+': all account buttons: OTP errors, consent, save/cancel, download, refresh/failure, conflicts, backup removal request/cancel, restore, logout and account request/failure passed');
 }})().catch(e=>{console.error(e);process.exit(1)});

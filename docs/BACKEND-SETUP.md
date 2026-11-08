@@ -1,3 +1,5 @@
+> Current update: drivers now verify an email code, set a password, and then use password sign-in. Existing code-only accounts use Set or reset password. The expanded admin dashboard includes a private support inbox; see ADMIN-DASHBOARD.md. Historical setup notes below describe the earlier code-only release.
+
 # Driver accounts and private cloud backups
 
 ## Current request workflow

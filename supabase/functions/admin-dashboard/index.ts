@@ -14,20 +14,37 @@ Deno.serve(async(req:Request)=>{
   if(user.email?.toLowerCase()!=='truckload464@gmail.com')return reply(403,{error:'Administrator access required'});
   const body=await req.json();
   if(body.action==='review'){
-   if(!['received','in_review','closed'].includes(body.status)||typeof body.note!=='string'||body.note.trim().length<10||body.note.length>2000||!Number.isSafeInteger(body.revision)||typeof body.id!=='string')return reply(400,{error:'Choose a status and enter a review note (10–2000 characters).'});
-   const {data,error:err}=await db.from('deletion_requests').update({status:body.status,review_note:body.note.trim(),reviewed_by:user.id}).eq('id',body.id).eq('revision',body.revision).select('id').maybeSingle();
+   const kind=body.kind||'removal',owner=body.owner||'',internal=body.internal||'';
+   if(!['removal','support'].includes(kind)||!['received','in_review','closed'].includes(body.status)||typeof body.note!=='string'||body.note.trim().length<10||body.note.length>2000||typeof owner!=='string'||!['','truckload464@gmail.com'].includes(owner)||typeof internal!=='string'||internal.length>4000||!Number.isSafeInteger(body.revision)||!/^[-0-9a-f]{36}$/i.test(body.id))return reply(400,{error:'Check the review fields.'});
+   const {data,error:err}=await db.rpc('review_operation',{p_actor:user.id,p_kind:kind,p_id:body.id,p_revision:body.revision,p_status:body.status,p_note:body.note.trim(),p_owner:owner,p_internal:internal});
    if(err)return reply(503,{error:'Review could not be saved'});
    if(!data)return reply(409,{error:'Request changed. Refresh before saving.'});
    return reply(200,{saved:true});
   }
-  if(body.action!=='list')return reply(400,{error:'Unknown action'});
   const offset=Number.isSafeInteger(body.offset)&&body.offset>=0?body.offset:0;
-  const [requests,backups]=await Promise.all([db.from('deletion_requests').select('*',{count:'exact'}).order('created_at',{ascending:false}).range(offset,offset+49),db.from('driver_backups').select('user_id',{count:'exact',head:true})]);
+  if(body.action==='overview'){
+   const {data,error:err}=await db.rpc('admin_overview',{p_search:typeof body.search==='string'?body.search.slice(0,254):'',p_offset:offset});
+   return err?reply(503,{error:'Overview unavailable'}):reply(200,data);
+  }
+  if(body.action==='support'||body.action==='activity'){
+   const table=body.action==='support'?'support_messages':'admin_activity';
+   const {data,error:err,count}=await db.from(table).select('*',{count:'exact'}).order('created_at',{ascending:body.action==='support'}).order('id').range(offset,offset+49);
+   if(err)return reply(503,{error:'Records unavailable'});
+   const rows=await Promise.all((data||[]).map(async r=>{
+    if(!r.actor_id)return r;
+    const {data:a}=await db.auth.admin.getUserById(r.actor_id);return {...r,actor_email:a.user?.email||r.actor_id};
+   }));
+   return reply(200,{rows,total:count||0});
+  }
+  if(body.action!=='list')return reply(400,{error:'Unknown action'});
+  const [requests,backups]=await Promise.all([db.from('deletion_requests').select('*',{count:'exact'}).order('created_at',{ascending:true}).order('id').range(offset,offset+49),db.from('driver_backups').select('user_id',{count:'exact',head:true})]);
+
   if(requests.error||backups.error)return reply(503,{error:'Dashboard could not load'});
   const rows=await Promise.all((requests.data??[]).map(async r=>{
    const {data,error:err}=await db.auth.admin.getUserById(r.user_id);
-   if(err)throw err;
-   return {...r,email:data.user?.email??'Unavailable'};
+   const staff=await db.from('request_staff').select('assigned_owner,internal_note').eq('request_id',r.id).maybeSingle();
+   if(err||staff.error)throw err||staff.error;
+   return {...r,...staff.data,email:data.user?.email??'Unavailable'};
   }));
   return reply(200,{requests:rows,total:requests.count??0,backupCount:backups.count??0,offset});
  }catch{return reply(503,{error:'Dashboard request failed'});}
