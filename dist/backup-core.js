@@ -18,10 +18,10 @@
   const records={};for(const key of keys){const value=storage.getItem(key);if(value!==null)records[key]=value;}
   return validate({format:'truckload-cloud-backup',version:1,createdAt:new Date().toISOString(),records});
  }
- function assertOwner(storage,userId){const owner=storage.getItem(ownerKey);if(owner&&owner!==userId)throw Error('These local records belong to a different signed-in driver. Use that account, or export and delete local data before changing drivers.');}
+ function assertOwner(storage,userId){const owner=storage.getItem(ownerKey);if(owner&&owner!==userId)throw Error('These local records belong to a different signed-in driver. Use that account or a separate empty device or browser profile.');}
  function restoreEmpty(storage,payload,userId){
   validate(payload);assertOwner(storage,userId);
-  if(keys.some(key=>storage.getItem(key)!==null))throw Error('Restore requires empty local storage. Export and delete local records first, or use a new device.');
+  if(keys.some(key=>storage.getItem(key)!==null))throw Error('Restore requires empty local storage. Use a new device or a separate empty browser profile.');
   const records={...payload.records};
   // Documents stay on the original device; never link restored trips to unrelated local files.
   if(records['sagi-trips'])records['sagi-trips']=JSON.stringify(JSON.parse(records['sagi-trips']).map(t=>({...t,rateconId:null})));

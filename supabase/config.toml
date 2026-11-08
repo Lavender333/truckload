@@ -432,3 +432,6 @@ content_path = "./supabase/templates/sign-in-code.html"
 [functions.delete-account]
 # The function validates the bearer token with auth.getUser before any admin action.
 verify_jwt = false
+
+[functions.admin-dashboard]
+verify_jwt = false

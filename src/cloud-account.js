@@ -14,7 +14,7 @@ function render() {
   $('cloudSignedIn').hidden = !user;
   $('cloudAuthForms').hidden = !!user;
   $('cloudIdentity').textContent = user ? 'Signed in as ' + user.email : '';
-  $('cloudDeleteAccount').disabled = busy || !user;
+  $('cloudRequestAccount').disabled = busy || !user;
 }
 async function run(action) {
   if (busy || !client) return;
@@ -64,6 +64,7 @@ $('cloudVerifyCode').onsubmit = event => {
     user = data.user; $('cloudCode').value = ''; $('cloudConsent').checked = false;
     status.textContent = 'Signed in. Nothing has been uploaded. Local records stay on this device when you sign out.';
     await refreshBackup();
+    await refreshRequests();
   });
 };
 $('cloudSignOut').onclick = () => run(async () => {
@@ -98,23 +99,25 @@ $('cloudRestore').onclick = () => run(async () => {
   core.restoreEmpty(localStorage, payload, user.id);
   location.hash = 'account'; location.reload();
 });
-$('cloudDeleteBackup').onclick = () => run(async () => {
-  const account = await currentUser();
-  if (!confirm('Permanently delete your cloud backup? Local device data will remain.')) return;
-  if (revision === null) throw Error('Refresh backup status first.');
-  const { data, error } = await client.from('driver_backups').delete().eq('user_id', account.id).eq('revision', revision).select('user_id');
-  if (error || !data?.length) throw Error('No backup was deleted. Refresh status and try again.');
-  await refreshBackup(); status.textContent = 'Cloud backup deleted. Local records remain.';
-});
-$('cloudDeleteAccount').onclick = () => run(async () => {
-  await currentUser();
-  if ($('cloudDeleteConfirm').value !== 'DELETE MY ACCOUNT') throw Error('Type DELETE MY ACCOUNT to confirm.');
-  if (!confirm('Permanently delete your Truckload account and cloud backup? Local records, exports and support emails will remain.')) return;
-  const { data, error } = await client.functions.invoke('delete-account', { body: { confirm: 'DELETE MY ACCOUNT' } });
-  if (error || !data?.deleted) throw Error('Account deletion was not confirmed. Sign in again and retry, or contact support.');
-  await client.auth.signOut({ scope: 'local' });
-  user = null; revision = null; $('cloudDeleteConfirm').value = '';
-  status.textContent = 'Account and cloud backup deleted. Use Delete my data on this device separately if needed.';
-});
+async function refreshRequests() {
+ const {data,error}=await client.from('deletion_requests').select('id,scope,status,created_at,review_note').order('created_at',{ascending:false}).limit(20);
+ if(error)throw Error('Could not load removal requests. Try Refresh request status.');
+ const list=$('cloudRequests');list.replaceChildren();
+ if(!data.length){list.textContent='No removal requests submitted.';return;}
+ for(const request of data){const row=document.createElement('p');row.textContent=(request.scope==='account'?'Account deletion':'Backup removal')+' — '+({received:'Received',in_review:'Under review',closed:'Closed'}[request.status]||request.status)+' · '+new Date(request.created_at).toLocaleDateString()+(request.review_note?' · '+request.review_note:'');list.appendChild(row);}
+}
+async function requestRemoval(scope) {
+ await currentUser();
+ if(scope==='account'&&!$('cloudRequestConfirm').checked)throw Error('Confirm that you want to request account deletion first.');
+ if(!confirm('Submit a '+(scope==='account'?'account deletion':'backup removal')+' request for review? No data is erased now.'))return;
+ const {data,error}=await client.functions.invoke('delete-account',{body:{confirm:'REQUEST DELETION',scope}});
+ if(error||!data?.requested)throw Error('Request was not confirmed. Please try again.');
+ status.textContent='Request received. Your records have not been deleted. You can check progress below.';
+ $('cloudRequestConfirm').checked=false;
+ await refreshRequests();
+}
+$('cloudRequestBackup').onclick=()=>run(()=>requestRemoval('backup'));
+$('cloudRequestAccount').onclick=()=>run(()=>requestRemoval('account'));
+$('cloudRequestRefresh').onclick=()=>run(async()=>{await currentUser();await refreshRequests();status.textContent='Request status refreshed.';});
 render();
 if (!configured) status.textContent = 'Cloud sign-in is being configured. Your local calculator and data remain available.';

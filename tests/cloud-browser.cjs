@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const user={id:'11111111-1111-4111-8111-111111111111',email:'driver@example.com',aud:'authenticated',role:'authenticated',email_confirmed_at:new Date().toISOString()};
 const jwt=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp:Math.floor(Date.now()/1000)+3600},'test'].map(x=>Buffer.from(typeof x==='string'?x:JSON.stringify(x)).toString('base64url')).join('.');
 (async()=>{for(const engine of [chromium,webkit]){
- const browser=await engine.launch();const page=await browser.newPage();let backup=null,uploads=0,conflict=false,failVerify=false,failRead=false,failDelete=false,cancel=false;const errors=[];
+ const browser=await engine.launch();const page=await browser.newPage();let requests=[],backup=null,uploads=0,conflict=false,failVerify=false,failRead=false,failDelete=false,cancel=false;const errors=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>cancel?d.dismiss():d.accept());
  await page.route('**/cloud-config.js',r=>r.fulfill({contentType:'application/javascript',body:"window.TRUCKLOAD_CLOUD={enabled:true,url:'https://test.supabase.co',publishableKey:'sb_publishable_test'}"}));
  await page.route('https://test.supabase.co/**',async r=>{
@@ -15,12 +15,13 @@ const jwt=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp:Math.fl
   else if(path==='/auth/v1/verify')body={access_token:jwt,refresh_token:'test-refresh',expires_in:3600,token_type:'bearer',user};
   else if(path==='/auth/v1/user')body=user;
   else if(path==='/auth/v1/logout')body={};
+  else if(path==='/rest/v1/deletion_requests')body=requests;
   else if(path==='/rest/v1/driver_backups'){
    if(method==='GET')body=backup?[backup]:[];
    else if(method==='POST'||method==='PATCH'){
     if(conflict){body=[];}else{uploads++;backup={...req.postDataJSON(),revision:uploads,saved_at:new Date().toISOString()};body=[backup];}
    }else if(method==='DELETE'){backup=null;body=[{user_id:user.id}];}
-  }else if(path==='/functions/v1/delete-account'){backup=null;body={deleted:true};}
+  }else if(path==='/functions/v1/delete-account'){const scope=req.postDataJSON().scope;if(!requests.some(r=>r.scope===scope))requests.push({id:'request-'+scope,scope,status:'received',created_at:new Date().toISOString(),review_note:''});body={requested:true};}
   else{status=404;body={error:'unexpected endpoint'};}
   await r.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
  });
@@ -45,18 +46,17 @@ const jwt=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp:Math.fl
  conflict=true;await page.click('#cloudSave');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Another device'));assert.equal(uploads,1);conflict=false;
  await page.click('#cloudRestore');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('empty local storage'));assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('sagi-trips'))[0].id),'local-trip');
  await page.click('#cloudRefresh');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('status refreshed'));
- cancel=true;await page.click('#cloudDeleteBackup');await page.waitForFunction(()=>!document.querySelector('#cloudDeleteBackup').disabled);assert(backup);cancel=false;
- await page.click('#cloudDeleteBackup');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Cloud backup deleted'));assert.equal(backup,null);
- await page.click('#cloudDownload');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('No cloud backup'));
- await page.click('#cloudSave');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Cloud backup saved'));
+ cancel=true;await page.click('#cloudRequestBackup');await page.waitForFunction(()=>!document.querySelector('#cloudRequestBackup').disabled);assert.equal(requests.length,0);cancel=false;
+ await page.click('#cloudRequestBackup');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Request received'));assert(backup);assert.equal(requests.length,1);
  await page.click('#cloudSignOut');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Signed out.'));assert(await page.evaluate(()=>localStorage.getItem('sagi-trips')));await signIn();
  // Restore onto empty storage, then verify records survive reload and session does not.
  await page.evaluate(()=>window.TruckloadBackup.keys.forEach(k=>localStorage.removeItem(k)));
  await page.click('#cloudRestore');await page.waitForFunction(()=>document.querySelector('#cloudSignedIn').hidden);
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('sagi-trips'))[0].id),'local-trip');await page.evaluate(()=>tab('account'));await signIn();
- await page.locator('#cloudSignedIn details summary').click();await page.click('#cloudDeleteAccount');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Type DELETE MY ACCOUNT'));assert(backup);await page.fill('#cloudDeleteConfirm','DELETE MY ACCOUNT');
- failDelete=true;await page.click('#cloudDeleteAccount');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('deletion was not confirmed'));assert(backup);failDelete=false;
- await page.click('#cloudDeleteAccount');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Account and cloud backup deleted'));
- assert.equal(backup,null);assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('sagi-trips'))[0].id),'local-trip');assert.deepEqual(errors,[]);
- await browser.close();console.log(engine.name()+': all account buttons: OTP errors, consent, save/cancel, download, refresh/failure, conflicts, delete backup/cancel, restore, logout and account deletion/failure passed');
+ await page.locator('#cloudSignedIn details summary').click();await page.click('#cloudRequestAccount');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Confirm that'));assert(backup);await page.check('#cloudRequestConfirm');
+ failDelete=true;await page.click('#cloudRequestAccount');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Request was not confirmed'));assert(backup);failDelete=false;
+ await page.click('#cloudRequestAccount');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Request received'));assert(backup);assert.equal(requests.length,2);
+ await page.click('#cloudRequestRefresh');await page.waitForFunction(()=>document.querySelector('#cloudStatus').textContent.includes('Request status refreshed'));assert.equal(await page.locator('#cloudRequests p').count(),2);
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('sagi-trips'))[0].id),'local-trip');assert.deepEqual(errors,[]);
+ await browser.close();console.log(engine.name()+': all account buttons: OTP errors, consent, save/cancel, download, refresh/failure, conflicts, backup removal request/cancel, restore, logout and account request/failure passed');
 }})().catch(e=>{console.error(e);process.exit(1)});

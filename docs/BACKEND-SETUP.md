@@ -1,5 +1,9 @@
 # Driver accounts and private cloud backups
 
+## Current request workflow
+
+The November 7 request-based workflow supersedes earlier direct-deletion behavior described in the historical implementation notes below. Customer account/backup removal now submits a review request; the service and dashboard do not permanently delete data. The local export/delete and Support information deletion sections were removed as requested. Support removal is a topic in Questions & feedback. See [admin dashboard operations and remaining release requirements](ADMIN-DASHBOARD.md).
+
 ## Current status
 
 Implementation was developed on `codex/backend-setup` and published to `main` on November 7, 2026. The owner-selected existing project `wxaghlxbiglxaqnbtjky` is now configured with the private backup table and account-deletion Edge Function. The dashboard identifies its organization as **Truck Load**, on the Free plan, in West US (Oregon). Initial creation in True Lavender failed because of the free-project quota; no paid plan or unrelated project was changed.

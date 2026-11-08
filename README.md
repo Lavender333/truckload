@@ -71,3 +71,7 @@ The native SPM Xcode project is checked in under `ios/`. See [Mac build, signing
 ## Cloud backend work
 
 Email sign-in and explicit private cloud backup are implemented on the backend feature branch but are enabled at the owner’s request. Email sending works; live authenticated backup/restore and real-device verification remain pending. The hosted private backup table and account-deletion service are deployed; database isolation and security checks passed. See [backend setup and verification](docs/BACKEND-SETUP.md). Local records remain available; no automatic upload, document sync or subscriptions are enabled. Run `npm run build:cloud` after changing cloud-client source.
+
+## Administration
+
+[Admin dashboard](https://lavender333.github.io/truckload/dist/admin.html): sign in with the authorized owner account to review cloud-removal requests. Customer actions submit requests without immediate permanent deletion. [Operations and fulfillment requirements](docs/ADMIN-DASHBOARD.md).
