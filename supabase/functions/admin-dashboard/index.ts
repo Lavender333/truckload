@@ -22,6 +22,10 @@ Deno.serve(async(req:Request)=>{
    return reply(200,{saved:true});
   }
   const offset=Number.isSafeInteger(body.offset)&&body.offset>=0?body.offset:0;
+  if(body.action==='metrics'){
+   const {data,error:err}=await db.rpc('admin_metrics',{p_days:[7,30,90].includes(body.days)?body.days:30});
+   return err?reply(503,{error:'Metrics unavailable'}):reply(200,data);
+  }
   if(body.action==='overview'){
    const {data,error:err}=await db.rpc('admin_overview',{p_search:typeof body.search==='string'?body.search.slice(0,254):'',p_offset:offset});
    return err?reply(503,{error:'Overview unavailable'}):reply(200,data);

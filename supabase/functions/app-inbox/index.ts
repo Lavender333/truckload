@@ -15,7 +15,7 @@ Deno.serve(async(req:Request)=>{
    const {data,error:err}=await db.from('support_messages').select('id,topic,status,customer_update,created_at').eq('email',user.email!.toLowerCase()).order('created_at',{ascending:false}).limit(50);
    return err?reply(503,{error:'Support updates unavailable'}):reply(200,{rows:data});
   }
-  if(!['support','event'].includes(body.action))return reply(400,{error:'Invalid action'});
+  if(!['support','event','visit'].includes(body.action))return reply(400,{error:'Invalid action'});
   // Rotating hashed network bucket, never store the source address or event payload.
   const ip=req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'unknown';
   const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')+new Date().toISOString().slice(0,10)+ip));
@@ -23,6 +23,11 @@ Deno.serve(async(req:Request)=>{
   const {data:allowed,error:limitError}=await db.rpc('operations_rate_limit',{p_bucket:bucket});
   if(limitError)return reply(503,{error:'Please try later'});
   if(!allowed)return reply(429,{error:'Too many requests. Please try later.'});
+  if(body.action==='visit'){
+   if(body.consent!==true||!/^[-0-9a-f]{36}$/i.test(body.session_id)||!/^[-0-9a-f]{36}$/i.test(body.visitor_id))return reply(400,{error:'Invalid visit'});
+   const {error}=await db.from('website_visits').insert({session_id:body.session_id,visitor_id:body.visitor_id});
+   return error&&error.code!=='23505'?reply(503,{error:'Visit unavailable'}):reply(200,{accepted:true});
+  }
   if(body.action==='event'){
    if(!['email_request_failed','backup_failed'].includes(body.kind))return reply(400,{error:'Invalid event'});
    const {error}=await db.from('service_events').insert({kind:body.kind});

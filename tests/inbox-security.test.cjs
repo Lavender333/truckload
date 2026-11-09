@@ -24,3 +24,11 @@ test('inbox rejects excess requests and invalid topics without forwarding',async
  const rate=await harness({allowed:false});assert.equal((await rate.send(message)).status,429);assert.equal(rate.forwarded(),0);
  const invalid=await harness();assert.equal((await invalid.send({...message,topic:'arbitrary'})).status,400);assert.equal(invalid.forwarded(),0);
 });
+
+test('visits require consent and IDs, ignore client timestamps and tolerate session retries',async()=>{
+ const h=await harness();const visit={action:'visit',session_id:message.id,visitor_id:message.id,consent:true,visited_at:'2000-01-01'};
+ assert.equal((await h.send({...visit,consent:false})).status,400);
+ assert.equal((await h.send(visit)).status,200);
+ const values=h.calls.find(c=>c[0]==='website_visits'&&c[1]==='insert')[2];assert.deepEqual(Object.keys(values).sort(),['session_id','visitor_id']);
+ const duplicate=await harness({duplicate:true});assert.equal((await duplicate.send(visit)).status,200);
+});

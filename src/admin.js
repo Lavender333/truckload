@@ -19,6 +19,17 @@ function reviewRow(r,kind){
  const save=node('button','Save review');save.onclick=()=>run(async()=>{if(note.value.trim().length<10)throw Error('Enter a review note of at least 10 characters.');await call({action:'review',kind,id:r.id,revision:r.revision,status:select.value,note:note.value,owner:owner.value,internal:internal.value});await load();$('adminStatus').textContent='Review saved. Customer update is available in the app; no email was sent and no data was deleted.';});
  row.append(field('Status',select),field('Assigned owner',owner),field('Internal notes — administrators only',internal),field('Update visible to customer (10–2000 characters)',note),save);return row;
 }
+async function metrics(){
+ $('adminMetrics').replaceChildren();$('metricRows').replaceChildren();$('metricUpdated').textContent='Loading metrics…';
+ let data;try{data=await call({action:'metrics',days:Number($('metricDays').value)});}catch(error){$('metricUpdated').textContent='Metrics unavailable. Try Refresh dashboard.';throw error;}
+ const cards=$('adminMetrics');cards.replaceChildren();
+ for(const [label,value,detail] of [['Website visits',data.visits,'Consenting sessions in selected period'],['Estimated visitors',data.visitors,'Distinct consenting browsers'],['Registered drivers',data.registeredTotal,'All verified accounts, excluding owner'],['New registrations',data.registeredNew,'First email verification in selected period'],['Visits today',data.visitsToday,'UTC day; consenting sessions'],['Registrations today',data.registeredToday,'UTC day; verified drivers']]){
+  const card=node('div','');card.className='metric-card';card.append(node('h3',label),node('strong',Number(value).toLocaleString()),node('p',detail));cards.append(card);
+ }
+ const rows=$('metricRows');rows.replaceChildren();
+ for(const day of data.daily.slice().reverse()){const tr=node('tr','');tr.append(node('th',day.date),node('td',String(day.visits)),node('td',String(day.registrations)));rows.append(tr);}
+ $('metricUpdated').textContent='Updated '+date(data.checkedAt)+' · Last '+data.days+' calendar days (UTC)';
+}
 async function overview(){
  const data=await call({action:'overview',search:$('driverSearch').value.trim(),offset:driverOffset});driverTotal=data.driverTotal;
  $('adminCounts').textContent=data.driverCount+' verified driver accounts · '+data.backupCount+' accounts with backups · '+data.newDrivers+' new accounts in 30 days · '+data.pendingRequests+' pending removal requests · '+data.pendingSupport+' open support messages';
@@ -34,10 +45,11 @@ async function outages(){
  try{const response=await fetch('https://status.supabase.com/api/v2/incidents.json',{signal:AbortSignal.timeout(8000)});if(!response.ok)throw Error();const data=await response.json();list.replaceChildren();for(const r of data.incidents.slice(0,5)){const p=node('p',r.name+' · '+r.status+' · '+date(r.updated_at));list.append(p);}if(!data.incidents.length)list.textContent='No incidents listed by the provider.';}
  catch{list.textContent='Provider incident feed unavailable. Open the Supabase status page for current information.';}
 }
-async function load(){await overview();await requests();await support();await activity();$('adminPanel').hidden=false;$('adminAuth').hidden=true;}
+async function load(){try{await metrics();}catch{}await overview();await requests();await support();await activity();$('adminPanel').hidden=false;$('adminAuth').hidden=true;}
 $('adminSend').onsubmit=e=>{e.preventDefault();run(async()=>{const {error}=await client.auth.signInWithOtp({email:$('adminEmail').value.trim(),options:{shouldCreateUser:false}});if(error)throw Error('Could not send a code. Use an existing administrator account.');$('adminVerify').hidden=false;$('adminStatus').textContent='Check your email for the code.';});};
 $('adminVerify').onsubmit=e=>{e.preventDefault();run(async()=>{const {error}=await client.auth.verifyOtp({email:$('adminEmail').value.trim(),token:$('adminCode').value.trim(),type:'email'});$('adminCode').value='';if(error)throw Error('Code could not be verified.');try{await load();void outages();$('adminStatus').textContent='Signed in to administration.';}catch(error){await client.auth.signOut({scope:'local'});clearPrivate();throw error;}});};
 $('adminRefresh').onclick=()=>run(async()=>{await load();void outages();$('adminStatus').textContent='Dashboard refreshed.';});
+$('metricDays').onchange=()=>run(metrics);
 $('driverLookup').onsubmit=e=>{e.preventDefault();run(async()=>{driverOffset=0;await overview();});};
 for(const direction of ['Previous','Next']){const delta=direction==='Next'?50:-50;
  $('admin'+direction).onclick=()=>run(async()=>{offset=Math.max(0,offset+delta);await requests();});
@@ -45,6 +57,6 @@ for(const direction of ['Previous','Next']){const delta=direction==='Next'?50:-5
  $('support'+direction).onclick=()=>run(async()=>{supportOffset=Math.max(0,supportOffset+delta);await support();});
  $('activity'+direction).onclick=()=>run(async()=>{activityOffset=Math.max(0,activityOffset+delta);await activity();});
 }
-function clearPrivate(){for(const id of ['adminRequests','adminCounts','adminDrivers','adminHealth','adminSupport','adminActivity','adminOutages'])$(id).replaceChildren();$('adminPanel').hidden=true;$('adminAuth').hidden=false;offset=driverOffset=supportOffset=activityOffset=0;$('driverSearch').value='';}
+function clearPrivate(){for(const id of ['adminMetrics','metricRows','metricUpdated','adminRequests','adminCounts','adminDrivers','adminHealth','adminSupport','adminActivity','adminOutages'])$(id).replaceChildren();$('adminPanel').hidden=true;$('adminAuth').hidden=false;offset=driverOffset=supportOffset=activityOffset=0;$('driverSearch').value='';}
 $('adminSignOut').onclick=()=>run(async()=>{const {error}=await client.auth.signOut({scope:'local'});if(error)throw error;clearPrivate();$('adminStatus').textContent='Signed out.';});
 controls();

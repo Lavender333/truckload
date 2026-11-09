@@ -23,5 +23,12 @@ test('private operations: counts, literal lookup, notes isolation, atomic review
  const support=(await db.query("insert into support_messages(id,email,topic,message) values(gen_random_uuid(),'driver@example.com','Bug report','test') returning id")).rows[0];
  assert.equal((await db.query('select review_operation($1,$2,$3,$4,$5,$6,$7,$8) as saved',[b,'support',support.id,1,'closed','Customer support update','','Staff only'])).rows[0].saved,true);
  assert.equal((await db.query('select * from admin_activity')).rows.length,2);
+ await db.query('insert into website_visits(session_id,visitor_id) values($1,$2)',[a,a]);
+ await assert.rejects(db.query('insert into website_visits(session_id,visitor_id) values($1,$2)',[a,a]),/unique/);
+ await db.query('insert into website_visits(session_id,visitor_id) values($1,$2)',[b,a]);
+ const metrics=(await db.query('select admin_metrics(7) as result')).rows[0].result;
+ assert.equal(metrics.visits,2);assert.equal(metrics.visitors,1);assert.equal(metrics.daily.length,7);assert.equal(metrics.registeredTotal,2);
+ await db.exec('reset role;set role authenticated');await assert.rejects(db.query('select * from website_visits'),/permission denied/);await assert.rejects(db.query('select admin_metrics(30)'),/permission denied/);
+
  }finally{await db.close();}
 });
